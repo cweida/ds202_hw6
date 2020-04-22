@@ -12,27 +12,36 @@ isNACol <- c(colnames(data) == "NA")
 data <- data[,!isNaCol]
 data <- data[,!isNACol]
 
-data <- data %>% select(c('Dog breed', 'category', `datadog score`, popularity, size, INTELLIGENCE.RANKING)) %>% 
+data <- data %>% select(c('Dog breed', 'category', `datadog score`, `POPULARITY IN US`, `INTELLIGENCE (TRAINABILITY) ranking`, `size category`)) %>% 
   mutate(`Dog breed` = as.factor(`Dog breed`), 
          category = as.factor(category),
         `size` = factor(`size category`, levels = c('small', 'medium','large')),
         `datadog score` = as.numeric(`datadog score`),
         `Intelligence` = as.numeric(`INTELLIGENCE (TRAINABILITY) ranking`),
         Popularity = as.numeric(`POPULARITY IN US`)) %>%
-  mutate(`INTELLIGENCE (TRAINABILITY) ranking` = as.factor(ifelse("INTELLIGENCE (TRAINABILITY) ranking" >= .35, 'clever', 'dumb')))
-data['INTELLIGENCE (TRAINABILITY) ranking']
+  mutate(`Intelligence` = as.factor(ifelse(`Intelligence` >= .35, 'clever', 'dumb')))
+data['Intelligence']
+str(data)
+data <- data %>% select(c("Dog breed", "category", "datadog score", "size", "Intelligence", "Popularity"))
+
+data <- data %>% filter(!is.na("Dog breed"),!is.na("category"),!is.na("datadog score"),!is.na("size"),!is.na("Intelligence"),!is.na("Popularity"))
+
+data <- drop_na(data)
 
 
+plot <- ggplot(data, mapping = aes(x = `datadog score`,y = Popularity))
+plot <- plot + geom_point(aes(size = `size`, color = category, shape = Intelligence)) + 
+  geom_text_repel(mapping = aes(label = `Dog breed`, color = category), size = 3) 
+plot <- plot + ylab('Popularity') + xlab('Dog Data Score')
+plot
+
+median(data$Popularity)
 
 
-
-data <- data[c(1, 2, 3, 5, 8, 27)]
-data <- data %>% mutate(Dog.breed = as.factor(`Dog breed`), category = as.factor(category), 
-                        datadog.score = as.numeric(`datadog score`), popularity = as.numeric(`POPULARITY IN US`),
-                        INTELLIGENCE.RANKING = as.numeric(`1 INTELLIGENCE (TRAINABILITY) ranking`),
-                        size = factor(`size category`, levels = c("small", "medium", "large"))) %>%
-  mutate(intelligence = as.factor(ifelse(INTELLIGENCE.RANKING >= 39, "clever", "dumb")))
-
-data
-
+plot <- ggplot(data, mapping = aes(x = `datadog score`,y = Popularity))
+plot <- plot + geom_point(aes(size = `size`, color = category, shape = Intelligence)) + 
+  geom_text_repel(mapping = aes(label = `Dog breed`, color = category), size = 3) 
+plot <- plot + ylab('Popularity') + xlab('Dog Data Score')
+plot <- plot + ylim(max(data$Popularity), min(data$Popularity)) + geom_hline(yintercept = (median(data$Popularity))) + geom_vline(xintercept = median(data$`datadog score`))
+plot
 
